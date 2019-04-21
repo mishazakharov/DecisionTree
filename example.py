@@ -1,3 +1,6 @@
+'''
+	github.com/random_forests tutorial!!!
+'''
 import pandas as pd
 from sklearn.model_selection import train_test_split
 # Слздание маленького дата-сета
