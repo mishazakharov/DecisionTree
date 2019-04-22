@@ -220,7 +220,7 @@ def random_forest(rows,n_trees,test_data):
 	predictions = [bagging_predict(trees,row) for row in test_data]
 	return predictions,trees
 
-b,trees = random_forest(training_data,5,test_data)
+b,trees = random_forest(training_data,500,test_data)
 b = np.array(b).reshape(-1,1)
 print(b)
 actual = np.array(test_data)
