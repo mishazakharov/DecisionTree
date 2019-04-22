@@ -193,6 +193,11 @@ def print_leaf(counts):
 	return probs
 
 def bagging_predict(trees, row):
+	''' Функция, с помощью которой каждое дерево делает предсказание
+	на одном экземпляре выборки. После она возвращает резулютирующее
+	предсказание(Какое чаще всего встречается в predictions и будет им),
+	то есть происходит голосование!
+	'''
 	predictions = []
 	# Каждое дерево делает предсказание и заносит его в predictions
 	for tree in trees:
@@ -202,6 +207,10 @@ def bagging_predict(trees, row):
 	return max(set(predictions), key=predictions.count)
 
 def subsample(dataset, ratio):
+	''' Функция, прверащающая исходный training_data
+	в обучающий поднабор. Размер зависит от коэффицента ratio!
+	Индексы выбираются случайно каждый раз.
+	'''
 	sample = list()
 	n_sample = round(len(dataset) * ratio)
 	while len(sample) < n_sample:
@@ -210,35 +219,41 @@ def subsample(dataset, ratio):
 	return sample
 
 def random_forest(rows,n_trees,test_data):
-	''' Строим дерево! '''
+	''' Строим лес! '''
 	trees = []
 	for i in range(n_trees):
 		# создаем поднабор из обучающего набора, чтобы обучить на нем дерево
 		sample = subsample(rows,0.25)
 		tree = build_tree(sample)
 		trees.append(tree)
+	# Оформляем список предсказаний слуачйного леса на тестовой выборке
 	predictions = [bagging_predict(trees,row) for row in test_data]
 	return predictions,trees
 
+# Создание леса, в b сохраняется предсказания леса, в trees
+# список с деревьями. 
 b,trees = random_forest(training_data,500,test_data)
 b = np.array(b).reshape(-1,1)
-print(b)
+# это array, содержащий test_data
 actual = np.array(test_data)
-compare = np.append(b,actual[:,-1].reshape(-1,1),axis=1)
-print(compare) 
 print('Количестов деревьев в лесу - ',len(trees))
 
+# точность предсказаний случайного леса(сравнивается b и 
+# значения классов на тестовой выборке)
 metric1 = metrics.accuracy_score(b,actual[:,-1].reshape(-1,1))
 print('Это точность случайного леса - ',metric1)
 
+# обучение одного дерева принятия решений
 single_tree = build_tree(training_data)
 predictions = []
+# предсказание дерева для всей выборки test_data
 for row in test_data:
 	prediction = classify(row,single_tree)
 	for pre in prediction.keys():
 		predictions.append(pre)
-
+# array(1,1), в котором содержатся предсказания одного дерева
 predictions = np.array(predictions).reshape(-1,1)
+# точность предсказаний одного дерева
 metric2 = metrics.accuracy_score(predictions,actual[:,-1].reshape(-1,1))
 print('Это точность одного дерева - ',metric2)
 
