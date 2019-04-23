@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-from random import randrange
+from random import randrange, randint
 # Слздание маленького дата-сета
 training_data = pd.read_csv('marks2.txt')
 training_data = training_data.values
@@ -215,15 +215,18 @@ def subsample(dataset, ratio):
 	n_sample = round(len(dataset) * ratio)
 	while len(sample) < n_sample:
 		index = randrange(len(dataset))
-		sample.append(dataset[index])
+		sample.append(dataset[index,randint(0,1):])
 	return sample
+
+new_data = subsample(training_data,0.2)
+print('This is SSUBSSAMPLE\n',np.array(new_data))
 
 def random_forest(rows,n_trees,test_data):
 	''' Строим лес! '''
 	trees = []
 	for i in range(n_trees):
 		# создаем поднабор из обучающего набора, чтобы обучить на нем дерево
-		sample = subsample(rows,0.25)
+		sample = subsample(rows,0.5)
 		tree = build_tree(sample)
 		trees.append(tree)
 	# Оформляем список предсказаний слуачйного леса на тестовой выборке
@@ -232,7 +235,7 @@ def random_forest(rows,n_trees,test_data):
 
 # Создание леса, в b сохраняется предсказания леса, в trees
 # список с деревьями. 
-b,trees = random_forest(training_data,500,test_data)
+b,trees = random_forest(training_data,1000,test_data)
 b = np.array(b).reshape(-1,1)
 # это array, содержащий test_data
 actual = np.array(test_data)
@@ -240,11 +243,11 @@ print('Количестов деревьев в лесу - ',len(trees))
 
 # точность предсказаний случайного леса(сравнивается b и 
 # значения классов на тестовой выборке)
-metric1 = metrics.accuracy_score(b,actual[:,-1].reshape(-1,1))
-print('Это точность случайного леса - ',metric1)
+metric1 = metrics.confusion_matrix(b,actual[:,-1].reshape(-1,1))
+print('Это точность случайного леса - \n',metric1)
 
 # обучение одного дерева принятия решений
-single_tree = build_tree(training_data)
+single_tree = build_tree(training_data[:40])
 predictions = []
 # предсказание дерева для всей выборки test_data
 for row in test_data:
@@ -254,13 +257,7 @@ for row in test_data:
 # array(1,1), в котором содержатся предсказания одного дерева
 predictions = np.array(predictions).reshape(-1,1)
 # точность предсказаний одного дерева
-metric2 = metrics.accuracy_score(predictions,actual[:,-1].reshape(-1,1))
-print('Это точность одного дерева - ',metric2)
-
-
-
-
-
-
+metric2 = metrics.confusion_matrix(predictions,actual[:,-1].reshape(-1,1))
+print('Это точность одного дерева - \n',metric2)
 
 
